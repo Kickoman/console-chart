@@ -36,7 +36,7 @@ protected:
     int priority(const char& c) const;
 
     RPN convert(const std::string& source);
-    std::string simplify(const std::string source);
+    std::string simplify(const std::string& source);
 private:
 };
 
@@ -52,7 +52,7 @@ struct Function<T>::Unit
     char operation;
 
     Unit() = default;
-    explicit Unit(T const& x) : value(x), type(NUMBER) {}
+    explicit Unit(const T & x) : value(x), type(NUMBER) {}
     explicit Unit(std::string const& s) {
         if (s == "x") {
             type = VARIABLE;
@@ -77,10 +77,11 @@ struct Function<T>::Unit
 
 
 template<class T>
-int Function<T>::set_function(const& std::string source)
+int Function<T>::set_function(const std::string& source)
 {
     expression = source;
     m_rpn_expr = convert(simplify(expression));
+    return 0;   // todo: remove returns
 }
 
 template<class T>
