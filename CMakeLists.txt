@@ -3,4 +3,8 @@ project(ConsoleChart)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(ConsoleChart main.cpp Function.cpp Function.h)
+add_executable(ConsoleChart main.cpp)
+
+add_subdirectory(kmisc/)
+
+target_link_libraries(ConsoleChart kmisc)

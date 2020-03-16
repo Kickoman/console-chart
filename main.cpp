@@ -1,5 +1,6 @@
 #include <iostream>
-#include "Function.h"
+#include "CommonUtils.h"
+#include "kfunction.h"
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <assert.h>
