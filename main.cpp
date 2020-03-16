@@ -2,7 +2,7 @@
 #include "CommonUtils.h"
 #include "kfunction.h"
 
-#if defined(PLATFORM_LIN)
+#if defined(PLATFORM_LINUX)
 #include <sys/ioctl.h>
 #include <unistd.h>
 #elif defined(PLATFORM_WINDOWS)
