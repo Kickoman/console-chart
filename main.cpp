@@ -1,26 +1,61 @@
 #include <iostream>
 #include "CommonUtils.h"
 #include "kfunction.h"
+
+#if defined(PLATFORM_LIN)
 #include <sys/ioctl.h>
 #include <unistd.h>
+#elif defined(PLATFORM_WINDOWS)
+#include <Windows.h>
+#endif
 #include <assert.h>
 #include <float.h>
 
+#include <thread>
+#include <chrono>
+
 using namespace std;
 
-void getTerminalSize(int &cols, int &lines)
+int getTerminalSize(int &cols, int &lines)
 {
-#ifdef TIOCGSIZE
-    struct ttysize ts;
-    ioctl(STDIN_FILENO, TIOCGSIZE, &ts);
-    cols = ts.ts_cols;
-    lines = ts.ts_lines;
-#elif defined(TIOCGWINSZ)
-    struct winsize ts;
-    ioctl(STDIN_FILENO, TIOCGWINSZ, &ts);
-    cols = ts.ws_col;
-    lines = ts.ws_row;
-#endif /* TIOCGSIZE */
+#ifdef PLATFORM_LINUX
+    #ifdef TIOCGSIZE
+        struct ttysize ts;
+        ioctl(STDIN_FILENO, TIOCGSIZE, &ts);
+        cols = ts.ts_cols;
+        lines = ts.ts_lines;
+    #elif defined(TIOCGWINSZ)
+        struct winsize ts;
+        ioctl(STDIN_FILENO, TIOCGWINSZ, &ts);
+        cols = ts.ws_col;
+        lines = ts.ws_row;
+    #else
+        char* _lines = getenv("LINES");
+        char* _cols  = getenv("COLUMNS");
+
+        if (!_lines || !_cols)
+            return 0;
+        lines = atoi(_lines);
+        cols  = atoi(_cols);
+    #endif /* TIOCGSIZE */
+#elif defined(PLATFORM_WINDOWS)
+    #ifdef __GNUC__
+        CONSOLE_SCREEN_BUFFER_INFO info;
+        HANDLE console = CreateFileW(L"CONOUT$", GENERIC_READ | GENERIC_WRITE,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
+                              0, nullptr);
+        if (console == INVALID_HANDLE_VALUE)
+            return 1;
+
+        /* Calculate the size of the console window. */
+        if (GetConsoleScreenBufferInfo(console, &info) == 0)
+            return 1;
+        CloseHandle(console);
+        cols = info.srWindow.Right - info.srWindow.Left;
+        lines = info.srWindow.Bottom - info.srWindow.Top;
+    #endif // __GNUC__
+#endif // PLATFORM
+    return 0;
 }
 
 vector<long double> calculatePoints(Function<long double>& f, long double l, long double r, int n)
@@ -53,8 +88,16 @@ int findZeroX(Function<long double>& f, long double l, long double r, int n)
 
 void printFunction(Function<long double>& f, long double l, long double r)
 {
-    int cols, lines;
+    int cols = -1, lines = -1;
     getTerminalSize(cols, lines);
+
+    if (cols < 1 || lines < 1)
+    {
+        cout << "Can't receive terminal size. ";
+        cout << "Received: ("<< lines <<")x("<< cols <<")" << endl;
+        return;
+    }
+
     vector<vector<short>> field(lines, vector<short>(cols, 0));
 
     vector<long double> points = calculatePoints(f, l, r, cols);
@@ -83,8 +126,9 @@ void printFunction(Function<long double>& f, long double l, long double r)
 
     int axisx = int(shiftUp / hy);
 
-    for (int i = 0; i < cols; ++i)
-        field[axisx][i] = 2;
+    if (axisx > -1)
+        for (int i = 0; i < cols; ++i)
+            field[axisx][i] = 2;
 
     int axisy = findZeroX(f, l, r, cols);
     if (axisy != -1)
@@ -110,6 +154,11 @@ void printFunction(Function<long double>& f, long double l, long double r)
                 cout << "●";
             if (field[i][j] == 2)
                 cout << "▬";
+
+            if (true)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
         }
         cout << endl;
     }
