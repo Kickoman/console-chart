@@ -1,4 +1,4 @@
 [submodule "kmisc"]
 	path = kmisc
-	url = https://hub.eliteme.me/k-dev/kmisc.git
+	url = git@github.com:Kickoman/kmisc.git
 	branch = dev-lib-cmake

@@ -39,7 +39,7 @@ int getTerminalSize(int &cols, int &lines)
         cols  = atoi(_cols);
     #endif /* TIOCGSIZE */
 #elif defined(PLATFORM_WINDOWS)
-    #ifdef __GNUC__
+    #ifndef __GNUC__
         CONSOLE_SCREEN_BUFFER_INFO info;
         HANDLE console = CreateFileW(L"CONOUT$", GENERIC_READ | GENERIC_WRITE,
                               FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
@@ -133,7 +133,10 @@ void printFunction(Function<long double>& f, long double l, long double r)
     int axisy = findZeroX(f, l, r, cols);
     if (axisy != -1)
         for (int i = 0; i < lines; ++i)
-            field[i][axisy] = 2;
+            field[i][axisy] = 3;
+
+    if (axisx > -1 && axisy != -1)
+        field[axisx][axisy] = 4;
 
     for (int i = 0; i < cols; ++i)
     {
@@ -151,13 +154,17 @@ void printFunction(Function<long double>& f, long double l, long double r)
             if (field[i][j] == 0)
                 cout << " ";
             if (field[i][j] == 1)
-                cout << "●";
+                cout << "*";
             if (field[i][j] == 2)
-                cout << "▬";
+                cout << "-";
+            if (field[i][j] == 3)
+                cout << "|";
+            if (field[i][j] == 4)
+                cout << "+";
 
             if (true)
             {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                std::this_thread::sleep_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(1));
             }
         }
         cout << endl;
